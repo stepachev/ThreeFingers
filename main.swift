@@ -36,6 +36,7 @@ var closed = false            // вкладку уже закрыли в это�
 var touchBegan = 0.0
 var maxFingers: Int32 = 0
 var moved: Float = 0
+var fingersNow: Int32 = 0     // сколько пальцев сейчас на тачпаде
 
 func key(_ code: CGKeyCode, _ flags: CGEventFlags) {
     for down in [true, false] {
@@ -62,6 +63,7 @@ func run(_ action: @escaping () -> Void) {
 }
 
 let callback: MTCallback = { _, data, count, _, _ in
+    fingersNow = count
     let now = ProcessInfo.processInfo.systemUptime
     if count > 0 && maxFingers == 0 { touchBegan = now }
     maxFingers = max(maxFingers, count)
@@ -103,12 +105,37 @@ func startDevices() {
     }
 }
 
+// MARK: - Пока на тачпаде три пальца — глушим прокрутку и свайпы
+// (иначе браузер принимает их за «назад/вперёд»)
+
+var tap: CFMachPort?
+let tapCallback: CGEventTapCallBack = { _, type, event, _ in
+    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+        if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
+        return Unmanaged.passUnretained(event)
+    }
+    return fingersNow >= 3 ? nil : Unmanaged.passUnretained(event)
+}
+
+func startTap() -> Bool {
+    let mask = (1 << CGEventType.scrollWheel.rawValue) | (1 << 29) | (1 << 31)   // прокрутка, жесты, свайп
+    guard let t = CGEvent.tapCreate(tap: .cghidEventTap, place: .headInsertEventTap, options: .defaultTap,
+                                    eventsOfInterest: CGEventMask(mask), callback: tapCallback, userInfo: nil) else { return false }
+    tap = t
+    CFRunLoopAddSource(CFRunLoopGetMain(), CFMachPortCreateRunLoopSource(nil, t, 0), .commonModes)
+    CGEvent.tapEnable(tap: t, enable: true)
+    return true
+}
+
 // MARK: - Запуск
 
 let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary)
 startDevices()
+if !startTap() {   // ждём разрешения «Универсальный доступ»
+    Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { t in if startTap() { t.invalidate() } }
+}
 NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { _ in
     DispatchQueue.main.asyncAfter(deadline: .now() + 2) { startDevices() }
 }
