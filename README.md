@@ -17,7 +17,7 @@ Browsers: Yab, Chrome, Safari, Arc, Firefox (edit `browsers` in `main.swift`).
 open /Applications/ThreeFingers.app
 ```
 
-Then allow it in **System Settings → Privacy & Security → Accessibility**. After every rebuild the permission has to be granted again (ad-hoc signature changes).
+Then allow it in **System Settings → Privacy & Security → Accessibility**. With an ad-hoc signature the permission must be granted again after every rebuild. To avoid that, put a self-signed code-signing identity "ThreeFingers local signing" into `signing/threefingers.keychain-db` (password in `signing/password`) — `build.sh` will use it.
 
 Free the three-finger swipes from macOS (moves Spaces / Mission Control to four fingers):
 
