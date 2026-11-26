@@ -5,7 +5,7 @@ Tiny native macOS app (~100 lines of Swift) for three-finger trackpad gestures i
 | Gesture | Action |
 |---|---|
 | Three-finger **tap** | Middle click (open link in new tab) — everywhere |
-| Three fingers **down** | Close tab (⌘W) — browsers only |
+| Three fingers **down** | Close tab or window (⌘W) — everywhere |
 | Three fingers **left / right** | Previous / next tab (⌘⇧[ / ⌘⇧]) — browsers only; keep sliding to step through tabs |
 
 Browsers: Yab, Chrome, Safari, Arc, Firefox (edit `browsers` in `main.swift`).

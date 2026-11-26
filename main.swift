@@ -1,6 +1,6 @@
 // ThreeFingers — три пальца на тачпаде:
 //   касание тремя пальцами   → клик колёсиком (ссылка в новой вкладке)
-//   три пальца вниз          → закрыть вкладку (⌘W)                    — только в браузерах
+//   три пальца вниз          → закрыть вкладку (⌘W)                    — в любой программе
 //   три пальца влево/вправо  → вкладка левее/правее (⌘⇧[ / ⌘⇧]), можно вести дальше — листает по одной
 import AppKit
 
@@ -91,7 +91,7 @@ let callback: MTCallback = { _, data, count, _, _ in
                    : { key(30, [.maskCommand, .maskShift]) })       // вправо → ⌘⇧] вкладка правее
     } else if dy < -threshold && abs(dy) > abs(dx) * 1.5 && !closed {
         used = true; closed = true
-        run { key(13, .maskCommand) }                               // вниз → ⌘W
+        DispatchQueue.main.async { key(13, .maskCommand) }          // вниз → ⌘W, в любой программе
     }
     return 0
 }
